@@ -8,19 +8,25 @@ app.use(express.json());
 let leads = [];
 let id = 1;
 
-// GET all leads
+// 🔹 GET all leads
 app.get("/leads", (req, res) => {
   res.json(leads);
 });
 
-// ADD lead
+// 🔹 ADD lead
 app.post("/add", (req, res) => {
-  const { name, email } = req.body;
+  const { name, email, phone, company } = req.body;
+
+  if (!name || !email) {
+    return res.status(400).json({ error: "Name & Email required" });
+  }
 
   const newLead = {
     id: id++,
     name,
     email,
+    phone: phone || "",
+    company: company || "",
     status: "New"
   };
 
@@ -28,23 +34,34 @@ app.post("/add", (req, res) => {
   res.json(newLead);
 });
 
-// DELETE lead
+// 🔹 DELETE lead
 app.delete("/delete/:id", (req, res) => {
   const leadId = parseInt(req.params.id);
   leads = leads.filter(l => l.id !== leadId);
   res.json({ message: "Deleted" });
 });
 
-// UPDATE status
+// 🔹 UPDATE status
 app.put("/update/:id", (req, res) => {
+  const { status } = req.body;
+
   const lead = leads.find(l => l.id == req.params.id);
-  if (lead) {
-    lead.status = "Contacted";
-    res.json(lead);
-  } else {
-    res.status(404).json({ error: "Not found" });
+
+  if (!lead) {
+    return res.status(404).json({ error: "Lead not found" });
   }
+
+  lead.status = status || "Contacted";
+  res.json(lead);
+});
+
+// 🔹 ROOT (optional test)
+app.get("/", (req, res) => {
+  res.send("Mini CRM Backend Running 🚀");
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
